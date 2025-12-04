@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "npx hardhat ignition deploy ignition/modules/deploy.ts"
+    "deploy": "npx hardhat ignition deploy ignition/modules/deploy.ts",
+    "getPrice": "npx hardhat run scripts/getPrice.ts --network bscTestnet"
   },
   "repository": {
     "type": "git",
