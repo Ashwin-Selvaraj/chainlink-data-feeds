@@ -18,8 +18,8 @@ console.log("Connecting to deployed contract at:", contractAddress);
 // Get the contract instance
 const chainlinkPrice = await ethers.getContractAt("ChainlinkPrice", contractAddress);
 
-// Token enum values: BNB=0, USDT=1, ETH=2, BTC=3, SOL=4, DOGE=5, SHIB=6, ADA=7, XRP=8
-const tokens = ["BNB", "USDT", "ETH", "BTC", "SOL", "DOGE", "SHIB", "ADA", "XRP"];
+// Token enum values: BNB=0, USDT=1, ETH=2, BTC=3, DOGE=4, ADA=5, XRP=6
+const tokens = ["BNB", "USDT", "ETH", "BTC", "DOGE", "ADA", "XRP"];
 
 // Get prices for all tokens
 for (let i = 0; i < tokens.length; i++) {
