@@ -35,7 +35,7 @@ contract ChainlinkPrice{
 
     // Pass the Chainlink feed address in the constructor
     // e.g. BNB/USD, ETH/USD, BTC/USD, etc.
-    constructor(address _BNB_USD_PriceFeed, address _USDT_USD_PriceFeed, address _ETH_USD_PriceFeed, address _BTC_USD_PriceFeed, address _SOL_USD_PriceFeed, address _DOGE_USD_PriceFeed, address _SHIB_USD_PriceFeed, address _ADA_USD_PriceFeed, address _XRP_USD_PriceFeed) {
+    constructor(address _BNB_USD_PriceFeed, address _USDT_USD_PriceFeed, address _ETH_USD_PriceFeed, address _BTC_USD_PriceFeed, address _DOGE_USD_PriceFeed, address _ADA_USD_PriceFeed, address _XRP_USD_PriceFeed) {
         priceFeeds[Token.BNB] = IAggregatorV3(_BNB_USD_PriceFeed);
         priceFeeds[Token.USDT] = IAggregatorV3(_USDT_USD_PriceFeed);
         priceFeeds[Token.ETH] = IAggregatorV3(_ETH_USD_PriceFeed);

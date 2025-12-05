@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_30-8c092042d85ad265c442f7489bba6988dbbe048e",
+  "solcVersion": "0.8.30",
+  "solcLongVersion": "0.8.30+commit.73712a01",
+  "userSourceNameMap": {
+    "contracts/ChainlinkPrice.sol": "project/contracts/ChainlinkPrice.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "prague",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/ChainlinkPrice.sol": {
+        "content": "//SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.30;\n\ninterface IAggregatorV3 {\n    // minimal Chainlink interface used here\n    function latestRoundData()\n        external\n        view\n        returns (\n            uint80 roundId,\n            int256 answer,\n            uint256 startedAt,\n            uint256 updatedAt,\n            uint80 answeredInRound\n        );\n\n    function decimals() external view returns (uint8);\n}\n\n\ncontract ChainlinkPrice{\n\n    enum Token {\n        BNB,\n        USDT,\n        ETH,\n        BTC,\n        DOGE,\n        ADA,\n        XRP\n    }\n\n    mapping(Token => IAggregatorV3) public priceFeeds;\n\n    // Pass the Chainlink feed address in the constructor\n    // e.g. BNB/USD, ETH/USD, BTC/USD, etc.\n    constructor(address _BNB_USD_PriceFeed, address _USDT_USD_PriceFeed, address _ETH_USD_PriceFeed, address _BTC_USD_PriceFeed, address _DOGE_USD_PriceFeed, address _ADA_USD_PriceFeed, address _XRP_USD_PriceFeed) {\n        priceFeeds[Token.BNB] = IAggregatorV3(_BNB_USD_PriceFeed);\n        priceFeeds[Token.USDT] = IAggregatorV3(_USDT_USD_PriceFeed);\n        priceFeeds[Token.ETH] = IAggregatorV3(_ETH_USD_PriceFeed);\n        priceFeeds[Token.BTC] = IAggregatorV3(_BTC_USD_PriceFeed);\n        priceFeeds[Token.DOGE] = IAggregatorV3(_DOGE_USD_PriceFeed);\n        priceFeeds[Token.ADA] = IAggregatorV3(_ADA_USD_PriceFeed);\n        priceFeeds[Token.XRP] = IAggregatorV3(_XRP_USD_PriceFeed);\n    }\n\n    /// @notice Returns price normalized to 1e18 (optional helper)\n    /// @param token The token to get the price for (BNB, USDT, ETH, BTC, etc.)\n    function getLatestPrice1e18(Token token) external view returns (uint256) {\n        IAggregatorV3 priceFeed = priceFeeds[token];\n        require(address(priceFeed) != address(0), \"Price feed not set for this token\");\n\n        (\n            , \n            int256 answer,\n            , \n            uint256 updatedAt,\n            \n        ) = priceFeed.latestRoundData();\n\n        require(answer > 0, \"invalid answer\");\n        require(updatedAt > block.timestamp - 1 days, \"stale price\");\n\n        uint8 feedDecimals = priceFeed.decimals();\n        uint256 price = uint256(answer);\n\n        // scale to 1e18\n        if (feedDecimals < 18) {\n            price = price * (10 ** (18 - feedDecimals));\n        } else if (feedDecimals > 18) {\n            price = price / (10 ** (feedDecimals - 18));\n        }\n\n        return price; // now always 18 decimals\n    }\n\n    /// @notice Returns raw price from Chainlink (with its own decimals)\n    /// @param token The token to get the price for (BNB, USDT, ETH, BTC, etc.)\n    function getLatestPrice(Token token) external view returns (int256) {\n        IAggregatorV3 priceFeed = priceFeeds[token];\n        require(address(priceFeed) != address(0), \"Price feed not set for this token\");\n\n        (\n            , // roundId\n            int256 answer,\n            , // startedAt\n            uint256 updatedAt,\n            // answeredInRound\n        ) = priceFeed.latestRoundData();\n\n        require(answer > 0, \"invalid answer\");\n        require(updatedAt > block.timestamp - 1 days, \"stale price\");\n\n        return answer; // e.g. 2500.00000000 if decimals = 8 => 250000000000\n    }\n\n}"
+      }
+    }
+  }
+}
