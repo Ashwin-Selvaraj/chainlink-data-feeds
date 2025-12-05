@@ -21,16 +21,36 @@ interface IAggregatorV3 {
 
 contract ChainlinkPrice{
 
-    IAggregatorV3 public priceFeed;
+    enum Token {
+        BNB,
+        USDT,
+        ETH,
+        BTC,
+        DOGE,
+        ADA,
+        XRP
+    }
+
+    mapping(Token => IAggregatorV3) public priceFeeds;
 
     // Pass the Chainlink feed address in the constructor
     // e.g. BNB/USD, ETH/USD, BTC/USD, etc.
-    constructor(address _priceFeed) {
-        priceFeed = IAggregatorV3(_priceFeed);
+    constructor(address _BNB_USD_PriceFeed, address _USDT_USD_PriceFeed, address _ETH_USD_PriceFeed, address _BTC_USD_PriceFeed, address _SOL_USD_PriceFeed, address _DOGE_USD_PriceFeed, address _SHIB_USD_PriceFeed, address _ADA_USD_PriceFeed, address _XRP_USD_PriceFeed) {
+        priceFeeds[Token.BNB] = IAggregatorV3(_BNB_USD_PriceFeed);
+        priceFeeds[Token.USDT] = IAggregatorV3(_USDT_USD_PriceFeed);
+        priceFeeds[Token.ETH] = IAggregatorV3(_ETH_USD_PriceFeed);
+        priceFeeds[Token.BTC] = IAggregatorV3(_BTC_USD_PriceFeed);
+        priceFeeds[Token.DOGE] = IAggregatorV3(_DOGE_USD_PriceFeed);
+        priceFeeds[Token.ADA] = IAggregatorV3(_ADA_USD_PriceFeed);
+        priceFeeds[Token.XRP] = IAggregatorV3(_XRP_USD_PriceFeed);
     }
 
     /// @notice Returns price normalized to 1e18 (optional helper)
-    function getLatestPrice1e18() external view returns (uint256) {
+    /// @param token The token to get the price for (BNB, USDT, ETH, BTC, etc.)
+    function getLatestPrice1e18(Token token) external view returns (uint256) {
+        IAggregatorV3 priceFeed = priceFeeds[token];
+        require(address(priceFeed) != address(0), "Price feed not set for this token");
+
         (
             , 
             int256 answer,
@@ -56,7 +76,11 @@ contract ChainlinkPrice{
     }
 
     /// @notice Returns raw price from Chainlink (with its own decimals)
-    function getLatestPrice() external view returns (int256) {
+    /// @param token The token to get the price for (BNB, USDT, ETH, BTC, etc.)
+    function getLatestPrice(Token token) external view returns (int256) {
+        IAggregatorV3 priceFeed = priceFeeds[token];
+        require(address(priceFeed) != address(0), "Price feed not set for this token");
+
         (
             , // roundId
             int256 answer,

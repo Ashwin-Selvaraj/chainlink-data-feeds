@@ -18,25 +18,46 @@ console.log("Connecting to deployed contract at:", contractAddress);
 // Get the contract instance
 const chainlinkPrice = await ethers.getContractAt("ChainlinkPrice", contractAddress);
 
-// Get the price feed address to check what feed we're using
-const priceFeedAddress = await chainlinkPrice.priceFeed();
-console.log("Price Feed Address:", priceFeedAddress);
+// Token enum values: BNB=0, USDT=1, ETH=2, BTC=3, SOL=4, DOGE=5, SHIB=6, ADA=7, XRP=8
+const tokens = ["BNB", "USDT", "ETH", "BTC", "SOL", "DOGE", "SHIB", "ADA", "XRP"];
 
-// Get raw price (with Chainlink's decimals)
-const rawPrice = await chainlinkPrice.getLatestPrice();
-console.log("Raw Price (with Chainlink decimals):", rawPrice.toString());
-
-// Get normalized price (1e18)
-const normalizedPrice = await chainlinkPrice.getLatestPrice1e18();
-console.log("Normalized Price (1e18):", normalizedPrice.toString());
-
-// Format for better readability
-try {
-    const priceFeed = await ethers.getContractAt("IAggregatorV3", priceFeedAddress);
-    const decimals = await priceFeed.decimals();
-    const formattedPrice = Number(rawPrice) / (10 ** Number(decimals));
-    console.log(`Formatted Price (${decimals} decimals):`, formattedPrice);
-} catch (error) {
-    console.log("Could not fetch decimals from price feed");
+// Get prices for all tokens
+for (let i = 0; i < tokens.length; i++) {
+    const tokenName = tokens[i];
+    console.log(`\n=== ${tokenName} Price ===`);
+    
+    try {
+        // Get the price feed address for this token (using type assertion for now)
+        const priceFeeds = (chainlinkPrice as any).priceFeeds;
+        const priceFeedAddress = await priceFeeds(i);
+        console.log("Price Feed Address:", priceFeedAddress);
+        
+        if (priceFeedAddress === "0x0000000000000000000000000000000000000000") {
+            console.log(`Price feed not set for ${tokenName}`);
+            continue;
+        }
+        
+        // Get raw price (with Chainlink's decimals) - using type assertion
+        const getLatestPrice = (chainlinkPrice as any).getLatestPrice;
+        const rawPrice = await getLatestPrice(i);
+        console.log("Raw Price (with Chainlink decimals):", rawPrice.toString());
+        
+        // Get normalized price (1e18)
+        const getLatestPrice1e18 = (chainlinkPrice as any).getLatestPrice1e18;
+        const normalizedPrice = await getLatestPrice1e18(i);
+        console.log("Normalized Price (1e18):", normalizedPrice.toString());
+        
+        // Format for better readability
+        try {
+            const priceFeed = await ethers.getContractAt("IAggregatorV3", priceFeedAddress);
+            const decimals = await priceFeed.decimals();
+            const formattedPrice = Number(rawPrice) / (10 ** Number(decimals));
+            console.log(`Formatted Price (${decimals} decimals): $${formattedPrice.toFixed(2)}`);
+        } catch (error) {
+            console.log("Could not fetch decimals from price feed");
+        }
+    } catch (error: any) {
+        console.log(`Error getting ${tokenName} price:`, error.message);
+    }
 }
 
